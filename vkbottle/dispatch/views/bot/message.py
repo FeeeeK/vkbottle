@@ -1,5 +1,6 @@
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Optional
 
+from vkbottle_types import StatePeer
 from vkbottle_types.events import GroupEventType
 
 from vkbottle.api.abc import ABCAPI
@@ -21,6 +22,14 @@ class MessageView(ABCView):
         self.default_text_approximators: List[Callable[[MessageMin], str]] = []
         self.handler_return_manager = BotMessageReturnHandler()
 
+    async def get_current_state(
+        self, event: dict, state_dispenser: "ABCStateDispenser"
+    ) -> Optional[StatePeer]:
+        state = await state_dispenser.cast(event["peer_id"])
+        if not state:
+            state = await state_dispenser.cast(event["from_id"])
+        return state
+
     async def process_event(self, event: dict) -> bool:
         if GroupEventType(event["type"]) == GroupEventType.MESSAGE_NEW:
             return True
@@ -32,7 +41,7 @@ class MessageView(ABCView):
         logger.debug("Handling event ({}) with message view".format(event.get("event_id")))
         context_variables = {}
         message = message_min(event, ctx_api)
-        message.state_peer = await state_dispenser.cast(message.peer_id)
+        message.state_peer = await self.get_current_state(event, state_dispenser)
 
         for text_ax in self.default_text_approximators:
             message.text = text_ax(message)

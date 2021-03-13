@@ -1,5 +1,6 @@
-from typing import Any, Dict, List, NamedTuple, Type
+from typing import Any, Dict, List, NamedTuple, Optional, Type
 
+from vkbottle_types import StatePeer
 from vkbottle_types.events import BaseGroupEvent, GroupEventType
 
 from vkbottle.api.abc import ABCAPI
@@ -21,6 +22,11 @@ class RawEventView(ABCView):
         self.handlers: Dict[GroupEventType, HandlerBasement] = {}
         self.middlewares: List["BaseMiddleware"] = []
         self.handler_return_manager = BotMessageReturnHandler()
+
+    async def get_current_state(
+        self, event: dict, state_dispenser: "ABCStateDispenser"
+    ) -> Optional[StatePeer]:
+        pass
 
     async def process_event(self, event: dict) -> bool:
         if GroupEventType(event["type"]) in self.handlers:
@@ -62,7 +68,10 @@ class RawEventView(ABCView):
         return_handler = self.handler_return_manager.get_handler(handler_response)
         if return_handler is not None:
             await return_handler(
-                self.handler_return_manager, handler_response, event_model, context_variables,
+                self.handler_return_manager,
+                handler_response,
+                event_model,
+                context_variables,
             )
 
         for middleware in self.middlewares:

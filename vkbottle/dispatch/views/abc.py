@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import Any, List, Optional
+
+from vkbottle_types import StatePeer
 
 from vkbottle.api.abc import ABCAPI
 from vkbottle.dispatch.dispenser.abc import ABCStateDispenser
@@ -12,6 +14,12 @@ class ABCView(ABC):
     handlers: List["ABCHandler"]
     middlewares: List["BaseMiddleware"]
     handler_return_manager: BaseReturnManager
+
+    @abstractmethod
+    async def get_current_state(
+        self, event: dict, state_dispenser: "ABCStateDispenser"
+    ) -> Optional[StatePeer]:
+        pass
 
     @abstractmethod
     async def process_event(self, event: dict) -> bool:
