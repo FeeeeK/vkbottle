@@ -65,7 +65,7 @@ class API(ABCAPI, APICategories):
                         "POST",
                         self.API_URL + method,
                         data=data,  # noqa
-                        params={"access_token": token, "v": self.API_VERSION},  # noqa
+                        params={"access_token": token, "v": API_VERSION},  # noqa
                     )
                 logger.debug("Request {} with {} data returned {}".format(method, data, response))
                 yield await self.validate_response(method, data, response)
